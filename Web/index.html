@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yt_Flow</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Search View -->
+  <div id="searchView">
+    <header>
+      <h1>Yt_Flow</h1>
+      <form id="searchForm">
+        <input type="text" id="searchInput" placeholder="Search YouTube..." autofocus>
+        <button type="submit">Search</button>
+      </form>
+    </header>
+    <div id="results"></div>
+  </div>
+
+  <!-- Player View -->
+  <div id="playerView" hidden>
+    <header>
+      <button id="backBtn">&larr; Back</button>
+      <h2 id="playerTitle">Title</h2>
+    </header>
+    <div class="player-container">
+      <video id="videoPlayer" controls autoplay></video>
+      <audio id="audioPlayer" preload="auto"></audio>
+    </div>
+    <div class="meta">
+      <p id="metaChannel"></p>
+      <p id="metaViews"></p>
+      <p id="metaDescription"></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
