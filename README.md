@@ -1,37 +1,25 @@
-# Yt_Flow
+# Yt_flow
 
-YouTube wrapper client with FastAPI backend and vanilla JS frontend.
+	Yt_flow is a terminal + web based youtube client that offers videos without any ads and insane customization like:
+	- making it minimal and productive
+	- gaming related 
+	- education only 
+	- and much more
 
-## Structure
+## Installation
 
-```
-Yt_Flow/
-├── Api/
-│   └── main.py       # FastAPI server
-├── Web/
-│   ├── index.html    # Frontend structure
-│   ├── style.css     # Dark theme styles
-│   └── script.js     # Search + synced player
-└── README.md
-```
-
-## Run
-
-**Terminal 1 — API (port 8000):**
 ```bash
-uvicorn Api.main:app --reload --host 0.0.0.0 --port 8000
+git clone https://github.com/philast-015/yt-flow
+cd Yt_flow
+./install.sh
 ```
 
-**Terminal 2 — Frontend (port 3000):**
+Or through pip
+
 ```bash
-cd Web && python3 -m http.server 3000
+pip install yt-flow
 ```
 
-Open http://localhost:3000 in your browser.
+## Contribution
 
-## API Endpoints
-
-| Endpoint | Returns |
-|---|---|
-| `GET /api/search?q=QUERY` | `[{id, title, channel, views, duration, thumbnail}]` |
-| `GET /api/info?video_id=ID` | `{title, description, views, channel, thumbnail, video_url, audio_url}` |
+	Contributers are welcome! just fork this repo edit what you want and create a PR.

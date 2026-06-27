@@ -1,15 +1,9 @@
-from fastapi import FastAPI, Query, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from flask import Flask, request, jsonify, abort
+from flask_cors import CORS
 import yt_dlp
 
-app = FastAPI(title="Yt_Flow API")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = Flask(__name__)
+CORS(app)
 
 SEARCH_OPTS = {
     "quiet": True,
@@ -36,13 +30,16 @@ def format_duration(seconds: int | None) -> str | None:
     return f"{m}:{s:02d}"
 
 
-@app.get("/api/search")
-def search(q: str = Query(..., min_length=1)):
+@app.route("/api/search")
+def search():
+    q = request.args.get("q")
+    if not q:
+        abort(400, description="Missing 'q' query parameter")
     try:
         with yt_dlp.YoutubeDL(SEARCH_OPTS) as ydl:
             result = ydl.extract_info(f"ytsearch10:{q}", download=False)
             if not result or "entries" not in result:
-                return {"results": []}
+                return jsonify({"results": []})
 
             entries = []
             for e in result["entries"]:
@@ -58,13 +55,16 @@ def search(q: str = Query(..., min_length=1)):
                         "thumbnail": f"https://i.ytimg.com/vi/{e['id']}/mqdefault.jpg",
                     }
                 )
-            return {"results": entries}
+            return jsonify({"results": entries})
     except Exception as ex:
-        raise HTTPException(status_code=500, detail=str(ex))
+        abort(500, description=str(ex))
 
 
-@app.get("/api/info")
-def info(video_id: str = Query(..., min_length=1)):
+@app.route("/api/info")
+def info():
+    video_id = request.args.get("video_id")
+    if not video_id:
+        abort(400, description="Missing 'video_id' query parameter")
     url = f"https://www.youtube.com/watch?v={video_id}"
     try:
         with yt_dlp.YoutubeDL(INFO_OPTS) as ydl:
@@ -80,23 +80,21 @@ def info(video_id: str = Query(..., min_length=1)):
                 audio_url = f.get("url", "")
 
         if not video_url or not audio_url:
-            raise HTTPException(
-                status_code=500,
-                detail="Could not extract video/audio streams",
-            )
+            abort(500, description="Could not extract video/audio streams")
 
-        return {
-            "title": info.get("title"),
-            "description": info.get("description"),
-            "views": info.get("view_count"),
-            "channel": info.get("channel") or info.get("uploader"),
-            "thumbnail": info.get(
-                "thumbnail", f"https://i.ytimg.com/vi/{video_id}/maxresdefault.jpg"
-            ),
-            "video_url": video_url,
-            "audio_url": audio_url,
-        }
-    except HTTPException:
-        raise
+        return jsonify(
+            {
+                "title": info.get("title"),
+                "description": info.get("description"),
+                "views": info.get("view_count"),
+                "channel": info.get("channel") or info.get("uploader"),
+                "thumbnail": info.get(
+                    "thumbnail",
+                    f"https://i.ytimg.com/vi/{video_id}/maxresdefault.jpg",
+                ),
+                "video_url": video_url,
+                "audio_url": audio_url,
+            }
+        )
     except Exception as ex:
-        raise HTTPException(status_code=500, detail=str(ex))
+        abort(500, description=str(ex))
