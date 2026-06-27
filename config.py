@@ -11,6 +11,8 @@ DEFAULT = {
     "port": 8000,
 }
 
+debug = False
+
 
 def load():
     os.makedirs(CONFIG_DIR, exist_ok=True)
