@@ -80,8 +80,35 @@
   <!-- Player View -->
   <div id="playerView" hidden>
     <div class="player-container">
-      <video id="videoPlayer" controls autoplay></video>
+      <video id="videoPlayer" autoplay></video>
       <audio id="audioPlayer" preload="auto"></audio>
+      <div class="player-controls" id="playerControls">
+        <div class="controls-top">
+          <span class="video-title" id="playerTitle"></span>
+        </div>
+        <div class="controls-center">
+          <button class="big-play-btn" id="bigPlayBtn"><i class="bi bi-play-fill"></i></button>
+        </div>
+        <div class="controls-bottom">
+          <div class="progress-bar" id="progressBar">
+            <div class="progress-buffer" id="progressBuffer"></div>
+            <div class="progress-played" id="progressPlayed"></div>
+            <div class="progress-thumb" id="progressThumb"></div>
+          </div>
+          <div class="controls-row">
+            <div class="controls-left">
+              <button class="ctrl-btn" id="playBtn"><i class="bi bi-play-fill"></i></button>
+              <span class="time-display"><span id="currentTime">0:00</span> / <span id="duration">0:00</span></span>
+            </div>
+            <div class="controls-right">
+              <button class="ctrl-btn" id="muteBtn"><i class="bi bi-volume-up-fill"></i></button>
+              <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1">
+              <button class="ctrl-btn" id="miniplayerBtn" title="Miniplayer (i)"><i class="bi bi-pip"></i></button>
+              <button class="ctrl-btn" id="fullscreenBtn" title="Fullscreen (f)"><i class="bi bi-fullscreen"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="meta">
       <p id="metaChannel"></p>

@@ -12,8 +12,26 @@ const metaChannel = document.getElementById("metaChannel");
 const metaViews = document.getElementById("metaViews");
 const metaDescription = document.getElementById("metaDescription");
 
+// Custom player refs
+const playerControls = document.getElementById("playerControls");
+const playBtn = document.getElementById("playBtn");
+const bigPlayBtn = document.getElementById("bigPlayBtn");
+const currentTimeEl = document.getElementById("currentTime");
+const durationEl = document.getElementById("duration");
+const progressBar = document.getElementById("progressBar");
+const progressPlayed = document.getElementById("progressPlayed");
+const progressBuffer = document.getElementById("progressBuffer");
+const progressThumb = document.getElementById("progressThumb");
+const volumeSlider = document.getElementById("volumeSlider");
+const muteBtn = document.getElementById("muteBtn");
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+const miniplayerBtn = document.getElementById("miniplayerBtn");
+const playerTitle = document.getElementById("playerTitle");
+const playerContainer = document.querySelector(".player-container");
+
 let isPlaying = false;
 let currentVideoId = null;
+let controlsTimeout = null;
 
 // --- Sync logic ---
 function syncAudio() {
@@ -24,27 +42,91 @@ function syncAudio() {
   }
 }
 
+function formatTime(s) {
+  if (isNaN(s) || s === Infinity) return "0:00";
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${sec.toString().padStart(2, "0")}`;
+}
+
+function updateProgress() {
+  const pct = videoPlayer.duration ? (videoPlayer.currentTime / videoPlayer.duration) * 100 : 0;
+  progressPlayed.style.width = `${pct}%`;
+  progressThumb.style.left = `${pct}%`;
+  currentTimeEl.textContent = formatTime(videoPlayer.currentTime);
+}
+
+function updateBuffer() {
+  if (videoPlayer.buffered.length > 0) {
+    const end = videoPlayer.buffered.end(videoPlayer.buffered.length - 1);
+    const pct = videoPlayer.duration ? (end / videoPlayer.duration) * 100 : 0;
+    progressBuffer.style.width = `${pct}%`;
+  }
+}
+
+function togglePlay() {
+  if (videoPlayer.paused) {
+    videoPlayer.play();
+  } else {
+    videoPlayer.pause();
+  }
+}
+
+function updatePlayButton() {
+  const icon = videoPlayer.paused ? "bi-play-fill" : "bi-pause-fill";
+  playBtn.innerHTML = `<i class="bi ${icon}"></i>`;
+  bigPlayBtn.innerHTML = `<i class="bi ${icon}"></i>`;
+}
+
+function showControls() {
+  playerControls.classList.add("visible");
+  clearTimeout(controlsTimeout);
+  if (!videoPlayer.paused) {
+    controlsTimeout = setTimeout(() => {
+      playerControls.classList.remove("visible");
+    }, 2000);
+  }
+}
+
+function seekFromEvent(e) {
+  const rect = progressBar.getBoundingClientRect();
+  const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  videoPlayer.currentTime = pct * videoPlayer.duration;
+  audioPlayer.currentTime = videoPlayer.currentTime;
+  updateProgress();
+}
+
 function setupPlayer() {
   videoPlayer.addEventListener("play", () => {
     audioPlayer.play().catch(() => {});
     isPlaying = true;
+    updatePlayButton();
+    showControls();
   });
 
   videoPlayer.addEventListener("pause", () => {
     audioPlayer.pause();
     isPlaying = false;
+    updatePlayButton();
+    playerControls.classList.add("visible");
+    clearTimeout(controlsTimeout);
   });
 
   videoPlayer.addEventListener("seeking", () => {
     audioPlayer.currentTime = videoPlayer.currentTime;
   });
 
-  videoPlayer.addEventListener("timeupdate", syncAudio);
+  videoPlayer.addEventListener("timeupdate", () => {
+    syncAudio();
+    updateProgress();
+  });
 
   videoPlayer.addEventListener("ended", () => {
     audioPlayer.pause();
     audioPlayer.currentTime = 0;
     isPlaying = false;
+    updatePlayButton();
+    playerControls.classList.add("visible");
   });
 
   videoPlayer.addEventListener("waiting", () => {
@@ -57,18 +139,127 @@ function setupPlayer() {
       audioPlayer.play().catch(() => {});
     }
   });
+
+  videoPlayer.addEventListener("loadedmetadata", () => {
+    durationEl.textContent = formatTime(videoPlayer.duration);
+  });
+
+  videoPlayer.addEventListener("progress", updateBuffer);
+
+  // Custom controls
+  playBtn.addEventListener("click", togglePlay);
+  bigPlayBtn.addEventListener("click", (e) => { e.stopPropagation(); togglePlay(); });
+  videoPlayer.addEventListener("click", togglePlay);
+
+  // Progress bar
+  progressBar.addEventListener("click", seekFromEvent);
+
+  let isDragging = false;
+  progressThumb.addEventListener("mousedown", (e) => { isDragging = true; e.preventDefault(); });
+  document.addEventListener("mousemove", (e) => { if (isDragging) seekFromEvent(e); });
+  document.addEventListener("mouseup", () => { isDragging = false; });
+
+  // Fullscreen
+  fullscreenBtn.addEventListener("click", () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  });
+  document.addEventListener("fullscreenchange", () => {
+    fullscreenBtn.innerHTML = document.fullscreenElement
+      ? '<i class="bi bi-fullscreen-exit"></i>'
+      : '<i class="bi bi-fullscreen"></i>';
+  });
+
+  // Miniplayer
+  miniplayerBtn.addEventListener("click", () => {
+    document.body.classList.toggle("miniplayer");
+  });
+
+  // Controls visibility
+  playerContainer.addEventListener("mousemove", showControls);
+  playerControls.addEventListener("mouseenter", () => {
+    clearTimeout(controlsTimeout);
+    playerControls.classList.add("visible");
+  });
+  playerControls.addEventListener("mouseleave", showControls);
+
+  // Volume
+  muteBtn.addEventListener("click", () => {
+    videoPlayer.muted = !videoPlayer.muted;
+    audioPlayer.muted = videoPlayer.muted;
+    muteBtn.innerHTML = videoPlayer.muted
+      ? '<i class="bi bi-volume-mute-fill"></i>'
+      : '<i class="bi bi-volume-up-fill"></i>';
+    volumeSlider.value = videoPlayer.muted ? 0 : videoPlayer.volume;
+  });
+
+  volumeSlider.addEventListener("input", () => {
+    videoPlayer.volume = parseFloat(volumeSlider.value);
+    audioPlayer.volume = videoPlayer.volume;
+    videoPlayer.muted = false;
+    audioPlayer.muted = false;
+    muteBtn.innerHTML = volumeSlider.value == 0
+      ? '<i class="bi bi-volume-mute-fill"></i>'
+      : '<i class="bi bi-volume-up-fill"></i>';
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener("keydown", (e) => {
+    if (playerView.hidden) return;
+    if (e.target.matches("input, textarea, [contenteditable]")) return;
+    switch (e.key) {
+      case " ":
+        e.preventDefault();
+        togglePlay();
+        break;
+      case "f":
+        if (!e.ctrlKey && !e.metaKey) { e.preventDefault(); fullscreenBtn.click(); }
+        break;
+      case "ArrowLeft":
+        e.preventDefault();
+        videoPlayer.currentTime = Math.max(0, videoPlayer.currentTime - 10);
+        audioPlayer.currentTime = videoPlayer.currentTime;
+        updateProgress();
+        showControls();
+        break;
+      case "ArrowRight":
+        e.preventDefault();
+        videoPlayer.currentTime = Math.min(videoPlayer.duration, videoPlayer.currentTime + 10);
+        audioPlayer.currentTime = videoPlayer.currentTime;
+        updateProgress();
+        showControls();
+        break;
+    }
+  });
 }
 
 function loadPlayer(videoUrl, audioUrl, title, channel, views, description) {
   videoPlayer.src = videoUrl;
   audioPlayer.src = audioUrl;
   videoPlayer.muted = true;
+  audioPlayer.muted = false;
 
+  playerTitle.textContent = title || "";
   metaChannel.textContent = channel;
   metaViews.textContent = views != null ? `${views.toLocaleString()} views` : "";
   metaDescription.textContent = description || "";
 
   playerView.hidden = false;
+  playerControls.classList.add("visible");
+  clearTimeout(controlsTimeout);
+  controlsTimeout = setTimeout(() => {
+    playerControls.classList.remove("visible");
+  }, 2000);
+
+  durationEl.textContent = "0:00";
+  currentTimeEl.textContent = "0:00";
+  progressPlayed.style.width = "0%";
+  progressThumb.style.left = "0%";
+  progressBuffer.style.width = "0%";
+  updatePlayButton();
 }
 
 // --- Search ---
