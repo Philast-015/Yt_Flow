@@ -136,6 +136,7 @@ def trending():
     except Exception as ex:
         abort(500, description=str(ex))
 
+
 @app.route("/api/info")
 def info():
     video_id = request.args.get("video_id")

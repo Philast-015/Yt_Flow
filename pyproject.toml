@@ -1,12 +1,47 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "Wave"
+name = "wave-twinx"
 version = "0.1.0"
-description = "A youtube clone with working videos."
+description = "A YouTube client with working videos - ad-free and customizable."
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "philast-015"},
+]
+keywords = ["youtube", "video", "client", "web"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
 dependencies = [
     "flask>=3.1.3",
     "flask-cors>=6.0.5",
     "requests>=2.34.2",
     "yt-dlp>=2026.6.9",
 ]
+
+[project.urls]
+Homepage = "https://github.com/philast-015/Wave"
+Source = "https://github.com/philast-015/Wave"
+Tracker = "https://github.com/philast-015/Wave/issues"
+
+[project.scripts]
+wave = "wave_twinx.main:main"
+
+[tool.setuptools.packages.find]
+include = ["wave_twinx*"]
+
+[tool.setuptools.package-data]
+wave_twinx = ["Web/*"]

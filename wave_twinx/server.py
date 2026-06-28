@@ -4,8 +4,8 @@ import re
 from flask import Flask, jsonify, request, send_from_directory, redirect, abort
 from flask_cors import CORS
 import yt_dlp
-from youtube import app as api_app
-import config
+from wave_twinx.youtube import app as api_app
+from wave_twinx import config
 
 
 COMMON_TAGS = {

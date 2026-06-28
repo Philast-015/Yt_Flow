@@ -21,9 +21,10 @@ def load():
     except (FileNotFoundError, json.JSONDecodeError):
         cfg = {}
     merged = {**DEFAULT, **cfg}
-    for k in ("download_dir","settings_dir"):
+    for k in ("download_dir", "settings_dir"):
         merged[k] = os.path.expanduser(merged[k])
     return merged
+
 
 def __getattr__(name):
     d = load()
