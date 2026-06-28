@@ -1,5 +1,5 @@
 [project]
-name = "yt-flow"
+name = "Wave"
 version = "0.1.0"
 description = "A youtube clone with working videos."
 readme = "README.md"

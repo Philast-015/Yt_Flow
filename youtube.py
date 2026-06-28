@@ -1,3 +1,5 @@
+import random
+import requests
 from flask import Flask, request, jsonify, abort
 from flask_cors import CORS
 import yt_dlp
@@ -37,7 +39,7 @@ def search():
         abort(400, description="Missing 'q' query parameter")
     try:
         with yt_dlp.YoutubeDL(SEARCH_OPTS) as ydl:
-            result = ydl.extract_info(f"ytsearch10:{q}", download=False)
+            result = ydl.extract_info(f"ytsearch50:{q}", download=False)
             if not result or "entries" not in result:
                 return jsonify({"results": []})
 
@@ -59,6 +61,80 @@ def search():
     except Exception as ex:
         abort(500, description=str(ex))
 
+
+TRENDING_TOPICS_GLOBAL = [
+    "popular music",
+    "viral videos",
+    "trending games",
+    "funny moments",
+    "tech reviews",
+    "movie trailers",
+    "sports highlights",
+    "news today",
+]
+
+COUNTRY_TOPIC_TEMPLATES = [
+    "{country} news",
+    "{country} popular",
+    "{country} music",
+    "{country} games",
+    "{country} viral",
+    "{country} sports",
+    "{country} tech",
+    "{country} comedy",
+]
+
+
+def detect_country(ip: str) -> str | None:
+    if not ip or ip in ("127.0.0.1", "::1", "localhost"):
+        return None
+    try:
+        resp = requests.get(f"http://ip-api.com/json/{ip}", timeout=5)
+        data = resp.json()
+        if data.get("status") == "success":
+            return data.get("countryCode")
+    except Exception:
+        pass
+    return None
+
+
+@app.route("/api/country")
+def country():
+    ip = request.remote_addr
+    code = detect_country(ip)
+    if code:
+        return jsonify({"country": code})
+    return jsonify({"country": None})
+
+
+@app.route("/api/trending")
+def trending():
+    country_code = request.args.get("country", "").upper().strip()
+    if country_code:
+        topics = [t.format(country=country_code) for t in COUNTRY_TOPIC_TEMPLATES]
+    else:
+        topics = TRENDING_TOPICS_GLOBAL
+    topic = random.choice(topics)
+    try:
+        with yt_dlp.YoutubeDL(SEARCH_OPTS) as ydl:
+            result = ydl.extract_info(f"ytsearch50:{topic}", download=False)
+            if not result or "entries" not in result:
+                return jsonify({"results": []})
+            entries = []
+            for e in result["entries"]:
+                if not e.get("id"):
+                    continue
+                entries.append({
+                    "id": e["id"],
+                    "title": e.get("title"),
+                    "channel": e.get("channel") or e.get("uploader"),
+                    "views": e.get("view_count"),
+                    "duration": format_duration(e.get("duration")),
+                    "thumbnail": f"https://i.ytimg.com/vi/{e['id']}/mqdefault.jpg",
+                })
+            return jsonify({"results": entries})
+    except Exception as ex:
+        abort(500, description=str(ex))
 
 @app.route("/api/info")
 def info():

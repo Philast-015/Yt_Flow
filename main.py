@@ -9,11 +9,8 @@ blue = "\033[0;34m"
 green = "\033[0;32m"
 reset = "\033[0m"
 
-global opened
-opened = True
-
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Yt_Flow - YouTube browser")
+    parser = argparse.ArgumentParser(description="Yt_Wave - YouTube browser")
     parser.add_argument("port", nargs="?", type=int, default=config.port, help="Port for web server")
     args = parser.parse_args()
 
