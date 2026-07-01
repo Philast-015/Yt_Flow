@@ -3,15 +3,16 @@
 A terminal + web-based YouTube client with ad-free playback and extensive customization.
 
 ## Features
+I used yt-dlp and vlc mainly so any playback issues is not the app's fault so just do a hard refresh by pressing `Ctrl + F5`
 
 - **Ad-free playback** — uses `yt-dlp` to extract direct video/audio streams, served through a synced custom HTML5 player
 - **Search & trending** — search YouTube, browse trending by country or tags (games, music, tech, education, etc.)
-- **Custom video player** — play/pause, seek, volume, buffer indicator, fullscreen, miniplayer (PiP), keyboard shortcuts
 - **Personal library** — bookmarks, likes, watch history, search history — all stored locally
 - **UI customization** — dark/light theme, accent colors, card/grid styles, animations, and more
 - **Recommendations** — tag-based and auto-learned from hashtags in videos you watch
 - **Download** — download videos up to 1080p directly from the player
-- **Responsive** — works on desktop and mobile
+
+For more info how this app works contact me.
 
 ## Installation
 
@@ -53,7 +54,3 @@ Settings are managed through the UI sidebar. Persistent data lives in `~/.Wave/`
 - `settings/config.json` — server configuration
 - `settings/ui-settings.json` — UI preferences
 - `settings/*.json` — watch history, bookmarks, likes, search history
-
-## License
-
-MIT
